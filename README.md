@@ -57,6 +57,10 @@ The tool processes videos locally in the user's browser. It does not intentional
 
 See [Privacy and Data Handling](docs/privacy.md) for details about local processing, generated outputs, third-party uploads, and device considerations.
 
+## Implementation Notes
+
+The current extraction approach is based on visual frame sampling, grayscale signatures, change thresholds, sensitivity controls, and optional exclusion zones. See [Extraction Algorithm And Tradeoffs](docs/algorithm.md) for details.
+
 ## How To Use
 
 1. Open the live demo.
