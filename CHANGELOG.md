@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## Unreleased
+
+- Added extraction algorithm and tradeoff documentation
+- Linked implementation notes from the README
+
 ## v0.1.1
 
 Documentation and maintenance update.
