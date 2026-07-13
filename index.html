@@ -73,8 +73,15 @@
   summary { cursor: pointer; }
   .row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
   .row input[type=range] { flex: 1; }
+  .mode-row { justify-content: space-between; margin-top: 16px; }
+  .mode-row label { flex: 0 0 auto; }
+  .mode-row select { width: 240px; max-width: calc(100% - 100px); min-width: 0; }
   .note { font-size: 12px; color: #8a929c; margin-top: 4px; }
   .hide { display: none; }
+  @media (max-width: 520px) {
+    .mode-row { align-items: stretch; flex-direction: column; }
+    .mode-row select { width: 100%; max-width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -87,6 +94,14 @@
     <div class="sub">複数OK・処理中でも追加でドロップできます／または下のボタンから選択</div>
     <button class="btn" id="pick" type="button">動画ファイルを選ぶ</button>
     <input type="file" id="file" accept="video/mp4,video/*" multiple class="hide">
+  </div>
+
+  <div class="row mode-row">
+    <label for="detectMode">動画の種類</label>
+    <select id="detectMode">
+      <option value="standard" selected>スライド中心（従来どおり）</option>
+      <option value="presenter">演者＋字幕（重複を抑える）</option>
+    </select>
   </div>
 
   <div id="preview" class="hide">
@@ -163,7 +178,7 @@ const $ = id => document.getElementById(id);
 const drop = $("drop"), fileInput = $("file"), video = $("video");
 const statusEl = $("status"), barWrap = $("barWrap"), barFill = $("barFill");
 const sens = $("sens"), cancelBtn = $("cancel"), skipBtn = $("skip"), fmtSel = $("fmt");
-const qualSel = $("qual"), resSel = $("res");
+const qualSel = $("qual"), resSel = $("res"), detectModeSel = $("detectMode");
 
 let busy = false, cancelled = false, skipRequested = false;
 
@@ -481,6 +496,7 @@ async function processOne(file, mask, num) {
   const maxW = Number(resSel.value);          // 出力画像の最大横幅
   const fmt = fmtSel.value;                    // 出力画像の形式（png / webp）
   const quality = Number(qualSel.value);       // WebP品質（pngでは無視される）
+  const presenterMode = detectModeSel.value === "presenter";
 
   const scale = video.videoWidth > maxW ? maxW / video.videoWidth : 1;
   const fw = Math.round(video.videoWidth * scale);
@@ -492,22 +508,32 @@ async function processOne(file, mask, num) {
   const slides = [];   // { bytes, w, h }
   const lightboxItems = [];
   let lastSig = null, lastCapT = -999;
+  let lastAcceptedDetail = null, pendingBlank = null;
 
-  async function capture(t) {
+  async function snapshot(t, detail) {
     fctx.drawImage(video, 0, 0, fw, fh);
     const blob = await new Promise(r =>
       full.toBlob(r, "image/" + fmt, fmt === "webp" ? quality : undefined));
     const bytes = new Uint8Array(await blob.arrayBuffer());
-    slides.push({ bytes, w: fw, h: fh, t });
+    return { bytes, w: fw, h: fh, t, blob, detail };
+  }
+
+  function commitCapture(item) {
+    slides.push({ bytes: item.bytes, w: item.w, h: item.h, t: item.t });
     const name = `${String(slides.length).padStart(3, "0")}.${fmt}`;
     const img = document.createElement("img");
-    img.src = URL.createObjectURL(blob);
+    img.src = URL.createObjectURL(item.blob);
     img.title = `${name}（クリックで拡大）`;
     const itemIndex = lightboxItems.push({ src: img.src, name }) - 1;
     img.addEventListener("click", () => openLightbox(lightboxItems, itemIndex));
     gal.appendChild(img);
     if (!lightbox.classList.contains("hide") && lbItems === lightboxItems) renderLightbox();
-    lastCapT = t;
+    lastCapT = item.t;
+    if (item.detail) lastAcceptedDetail = item.detail;
+  }
+
+  async function capture(t, detail = null) {
+    commitCapture(await snapshot(t, detail));
   }
 
   barFill.style.width = "0%";
@@ -515,10 +541,26 @@ async function processOne(file, mask, num) {
     if (cancelled || skipRequested) break;
     await seekTo(Math.min(t, duration - 0.05));
     const sig = signature();
+    const detail = presenterMode ? detailSignature() : null;
+
+    // 字幕なしの候補を1コマだけ保留し、同じ背景に字幕が戻れば中間コマとして除外する。
+    if (pendingBlank) {
+      if (!isTransientBlank(pendingBlank.detail, detail)) commitCapture(pendingBlank);
+      pendingBlank = null;
+    }
+
     if (lastSig === null) {
-      await capture(t);                                  // 先頭スライド
+      await capture(t, detail);                          // 先頭スライド
     } else if (diff(sig, lastSig, mask) > threshold && (t - lastCapT) >= minGap) {
-      await capture(t);                                  // 画面が変わった
+      if (presenterMode && isPresenterDuplicate(detail, lastAcceptedDetail)) {
+        // 同じ字幕・ほぼ同じ画面なら、演者の姿勢だけが変わったコマとして採用しない。
+      } else if (presenterMode && lastAcceptedDetail
+                 && lastAcceptedDetail.captionDensity >= CAPTION_MIN_DENSITY
+                 && detail.captionDensity < CAPTION_MIN_DENSITY) {
+        pendingBlank = await snapshot(t, detail);
+      } else {
+        await capture(t, detail);                        // 画面が変わった
+      }
     }
     lastSig = sig;
     const pct = Math.min(100, t / duration * 100);
@@ -526,6 +568,7 @@ async function processOne(file, mask, num) {
     setStatus(`${tag}${file.name} — スライドを探しています… ${Math.round(pct)}％（${slides.length}枚）`
       + (queue.length ? `／待機 ${queue.length}本` : ""));
   }
+  if (pendingBlank && !cancelled && !skipRequested) commitCapture(pendingBlank);
   if (!cancelled && !skipRequested) barFill.style.width = "100%";
 
   if (!slides.length) {
@@ -609,6 +652,81 @@ async function showDownloads(slides, baseName, sourceName, resultEl, fmt) {
     a.click();
   });
   resultEl.appendChild(pdfBtn);
+}
+
+const DETAIL_W = 256;
+const DETAIL_H = 144;
+const CAPTION_TOP = Math.floor(DETAIL_H * 0.65);
+const DETAIL_CELL_TH = 25;
+const EDGE_TH = 30;
+const CAPTION_MIN_DENSITY = 0.08;
+
+// 演者動画向けに、全体の明暗と画面下部の文字輪郭を別々に記録する。
+function detailSignature() {
+  const c = detailSignature._c || (detailSignature._c = document.createElement("canvas"));
+  c.width = DETAIL_W; c.height = DETAIL_H;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(video, 0, 0, DETAIL_W, DETAIL_H);
+  const rgba = ctx.getImageData(0, 0, DETAIL_W, DETAIL_H).data;
+  const gray = new Uint8ClampedArray(DETAIL_W * DETAIL_H);
+  for (let i = 0; i < gray.length; i++) {
+    gray[i] = 0.299 * rgba[i * 4] + 0.587 * rgba[i * 4 + 1] + 0.114 * rgba[i * 4 + 2];
+  }
+
+  const captionEdges = new Uint8Array((DETAIL_H - CAPTION_TOP) * DETAIL_W);
+  let edgeCount = 0, edgeIndex = 0;
+  for (let y = CAPTION_TOP; y < DETAIL_H; y++) {
+    for (let x = 0; x < DETAIL_W; x++, edgeIndex++) {
+      const i = y * DETAIL_W + x;
+      const left = x ? gray[i - 1] : gray[i];
+      const above = y ? gray[i - DETAIL_W] : gray[i];
+      const edge = Math.abs(gray[i] - left) + Math.abs(gray[i] - above) > EDGE_TH ? 1 : 0;
+      captionEdges[edgeIndex] = edge;
+      edgeCount += edge;
+    }
+  }
+  return { gray, captionEdges, captionDensity: edgeCount / captionEdges.length };
+}
+
+function changedRatio(a, b) {
+  let changed = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (Math.abs(a[i] - b[i]) > DETAIL_CELL_TH) changed++;
+  }
+  return changed / a.length;
+}
+
+function edgeDiffRatio(a, b) {
+  let changed = 0;
+  for (let i = 0; i < a.length; i++) changed += a[i] !== b[i] ? 1 : 0;
+  return changed / a.length;
+}
+
+function outerChangedRatio(a, b) {
+  let changed = 0, total = 0;
+  const topEnd = Math.floor(DETAIL_H * 0.22);
+  const sideWidth = Math.floor(DETAIL_W * 0.18);
+  for (let y = 0; y < CAPTION_TOP; y++) {
+    for (let x = 0; x < DETAIL_W; x++) {
+      if (y >= topEnd && x >= sideWidth && x < DETAIL_W - sideWidth) continue;
+      const i = y * DETAIL_W + x;
+      total++;
+      if (Math.abs(a[i] - b[i]) > DETAIL_CELL_TH) changed++;
+    }
+  }
+  return total ? changed / total : 0;
+}
+
+function isPresenterDuplicate(current, previous) {
+  if (!previous) return false;
+  return edgeDiffRatio(current.captionEdges, previous.captionEdges) <= 0.07
+    && changedRatio(current.gray, previous.gray) <= 0.12;
+}
+
+function isTransientBlank(current, next) {
+  return current.captionDensity < CAPTION_MIN_DENSITY
+    && next.captionDensity >= CAPTION_MIN_DENSITY
+    && outerChangedRatio(current.gray, next.gray) <= 0.04;
 }
 
 function csvCell(value) {

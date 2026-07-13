@@ -35,6 +35,14 @@ Videos often include moving regions that are unrelated to slide changes, such as
 
 Users can draw exclusion zones before analysis. These regions are ignored during change detection, which helps reduce false positives from movement that is not part of the slide content.
 
+## Presenter And Caption Mode
+
+Presenter-led videos can produce many extra captures when body movement changes a large part of the frame. The optional presenter-and-caption mode adds a second, conservative check after the normal change detector finds a candidate frame.
+
+The additional check compares both the full low-resolution frame and the edge pattern in the lower caption region. A candidate is suppressed only when the overall frame remains very similar and the caption pattern is also nearly unchanged. This keeps the original detector available for slide-heavy videos while reducing repeated presenter poses in captioned videos.
+
+Caption-free candidates are held for one additional sample. If captions immediately return while the outer background remains stable, the held frame is treated as a brief transition and discarded. Persistent caption-free scenes are retained.
+
 ## Output Formats
 
 `DeckSift` supports image, PDF, ZIP, and metadata outputs:
@@ -57,7 +65,7 @@ The current approach is intentionally simple and browser-friendly. This means:
 - Animated slide builds may produce extra captures.
 - Very subtle slide changes may be missed.
 - Videos with camera movement or transitions may need sensitivity tuning.
-- Exact duplicate cleanup is not yet implemented.
+- Presenter mode uses visual heuristics and may still require sensitivity tuning for unusual caption layouts.
 - OCR-based slide titles are not yet implemented.
 
 These tradeoffs are acceptable for the first version because the tool is optimized for practical research workflows rather than perfect video segmentation.

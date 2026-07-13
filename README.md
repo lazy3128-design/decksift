@@ -18,6 +18,7 @@ When researching webinars, product demos, online courses, talks, or recorded pre
 
 - Extracts slide-like frames from MP4/video files
 - Exports captured frames as images
+- Offers a presenter-and-caption mode to reduce repeated captures caused by presenter movement
 - Exports slide numbers, filenames, and video timestamps as CSV metadata
 - Generates a PDF from extracted slides
 - Exports lightweight WebP images for smaller upload size
