@@ -34,6 +34,8 @@ When reporting a problem, include:
 - What you expected
 - What happened instead
 - Whether sensitivity settings changed the result
+- Which detection mode was selected
+- Approximate output count and examples of false positives or missed frames
 
 Do not upload private or copyrighted videos unless you have permission to share them.
 

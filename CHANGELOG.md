@@ -2,10 +2,14 @@
 
 All notable changes to this project are documented here.
 
-## Unreleased
+## v0.3.0 - 2026-07-13
 
 - Added previous/next controls, keyboard arrow navigation, and an image counter to the enlarged preview
 - Simplified extracted image filenames to numbered names such as `001.webp`
+- Added an optional presenter-and-caption detection mode that suppresses repeated frames caused by presenter movement
+- Added a short look-ahead check to discard brief caption-free transition frames in presenter videos
+- Refined presenter mode with color-aware caption matching and delayed-caption scene handling
+- Added visible feedback when ZIP and CSV downloads are started
 
 ## v0.2.0 - 2026-07-13
 
