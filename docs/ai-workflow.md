@@ -45,6 +45,18 @@ Create a comparison table from these product demo slides. Compare target users, 
 Turn these slides into structured research notes. Preserve important numbers, named concepts, frameworks, and open questions. Separate facts shown on the slides from your own inferences.
 ```
 
+### Analyze A Funnel Video
+
+```text
+Review these timestamped frames together with the transcript. Create a table
+showing the visual design, message, likely funnel role, supporting evidence,
+and confidence at each stage. Then outline the apparent sequence using hook,
+problem, agitation, mechanism, proof, offer, and call to action where supported.
+Clearly separate direct observations from your own inferences.
+```
+
+For the complete marketing workflow and an evidence-table format, see [Funnel And Creative Research Workflow](funnel-research-workflow.md).
+
 ## Privacy Notes
 
 The original video is processed locally in the browser by DeckSift. However, uploading extracted images or ZIP files to an AI service is a separate action. Before uploading, confirm that you have permission to share the extracted material and review the destination service's data-handling policies.
@@ -57,3 +69,4 @@ Do not upload confidential, private, copyrighted, or personal material unless yo
 - Subtle changes may be missed depending on sensitivity settings.
 - ZIP volume size is approximate and may vary slightly by browser and output format.
 - AI-generated summaries should be reviewed against the original material.
+- Transcript alignment and automatic funnel/DRM analysis are not built into the current release.

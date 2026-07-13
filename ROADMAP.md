@@ -20,6 +20,15 @@
 - Add optional OCR text extraction
 - Add PDF naming based on video title and timestamps
 
+## Marketing Research Improvements
+
+- Import timestamped transcripts and align them with captured frames
+- Add structured annotations for visual design, message, and funnel role
+- Add optional DRM sequence analysis for hook, problem, agitation, mechanism, proof, offer, and call to action
+- Preserve source timestamps and confidence labels in evidence-linked reports
+- Export comparison-ready CSV/JSON reports across multiple videos
+- Support educational-video planning from reviewed research findings
+
 ## Packaging
 
 - Keep the static web version

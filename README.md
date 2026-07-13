@@ -12,7 +12,7 @@ Live demo: https://lazy3128-design.github.io/decksift/
 
 When researching webinars, product demos, online courses, talks, or recorded presentations, it is often useful to turn a long video into a set of reviewable slides. Manual screenshots are slow, and full video transcription does not preserve visual layout.
 
-`DeckSift` helps convert video-based slide content into lightweight image/PDF materials that can be reviewed, annotated, summarized, or archived.
+`DeckSift` helps convert video-based slide content into lightweight image/PDF materials that can be reviewed, annotated, summarized, or archived. For web marketers and funnel designers, the timestamped output also provides visual evidence of which design and message appeared at each point in a campaign or educational video.
 
 ## Current Capabilities
 
@@ -45,6 +45,10 @@ The original slide-focused detector remains available so presenter-specific heur
 
 ## Use Cases
 
+- Researching the visual and messaging sequence of authorized competitor campaign videos
+- Building evidence-backed funnel research for clients
+- Comparing hooks, claims, proof, offers, and calls to action alongside a transcript
+- Planning in-house educational videos, webinars, and video sales letters
 - Researching webinars, lectures, demos, and conference talks
 - Turning recorded presentations into reviewable slide material
 - Extracting visual references from product walkthrough videos
@@ -66,6 +70,8 @@ Example workflow:
 4. Ask for a summary, comparison table, research notes, or follow-up questions.
 
 See the detailed [AI-assisted research workflow guide](docs/ai-workflow.md) for example prompts, privacy notes, and practical limitations.
+
+For a workflow tailored to web marketing, client evidence, and funnel design, see the [funnel and creative research guide](docs/funnel-research-workflow.md).
 
 Release details: [DeckSift v0.3.0 notes](docs/release-v0.3.0.md).
 
@@ -105,6 +111,9 @@ The v0.3.0 presenter mode was tuned with a 23-minute presenter/interview test vi
 
 - Improve slide change detection for animated decks
 - Expand duplicate-detection benchmarks across more video layouts
+- Align imported transcripts with captured frames and timestamps
+- Add structured funnel and DRM sequence analysis with evidence links
+- Export comparison-ready research reports for client work
 - Add optional OCR-assisted slide naming
 - Add a batch summary workflow for research notes
 - Add test videos and benchmark examples
