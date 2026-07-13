@@ -2,7 +2,7 @@
 
 ## Supported Scope
 
-`slides2pdf` is a browser-based static tool. Videos are intended to be processed locally in the user's browser without uploading them to a server.
+`DeckSift` is a browser-based static tool. Videos are intended to be processed locally in the user's browser without uploading them to a server.
 
 ## Reporting a Vulnerability
 
