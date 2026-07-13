@@ -1,16 +1,16 @@
 # Privacy And Data Handling
 
-This document explains how `slides2pdf` handles video files and generated outputs.
+This document explains how `DeckSift` handles video files and generated outputs.
 
 ## Local Browser Processing
 
-`slides2pdf` is designed as a browser-based static tool. Selected video files are read and processed inside the user's browser using browser APIs.
+`DeckSift` is designed as a browser-based static tool. Selected video files are read and processed inside the user's browser using browser APIs.
 
-The project does not require a backend server for slide extraction, image generation, ZIP creation, or PDF generation. The original video is not intentionally uploaded by `slides2pdf` during normal use.
+The project does not require a backend server for slide extraction, image generation, ZIP creation, or PDF generation. The original video is not intentionally uploaded by `DeckSift` during normal use.
 
 ## Generated Outputs
 
-Generated slide images, ZIP volumes, and PDFs are created in the browser and downloaded by the user. Users control where those generated files are stored and whether they are shared with another service.
+Generated slide images, ZIP volumes, PDFs, and timestamp CSV files are created in the browser and downloaded by the user. Users control where those generated files are stored and whether they are shared with another service.
 
 ## AI And Third-Party Uploads
 
