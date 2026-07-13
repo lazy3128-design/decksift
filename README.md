@@ -19,6 +19,8 @@ When researching webinars, product demos, online courses, talks, or recorded pre
 - Extracts slide-like frames from MP4/video files
 - Exports captured frames as images
 - Offers a presenter-and-caption mode to reduce repeated captures caused by presenter movement
+- Uses color-aware caption matching to distinguish changed captions from presenter motion
+- Removes brief caption-free transition frames while retaining persistent scenes
 - Exports slide numbers, filenames, and video timestamps as CSV metadata
 - Generates a PDF from extracted slides
 - Exports lightweight WebP images for smaller upload size
@@ -26,10 +28,20 @@ When researching webinars, product demos, online courses, talks, or recorded pre
 - Lets users select exclusion zones for moving regions such as captions, presenter cameras, or overlays
 - Downloads extracted frames as ZIP files
 - Supports saving individual frames from the preview/output while processing
+- Supports previous/next buttons and Left/Right arrow keys in the enlarged preview
+- Uses clean numbered image filenames such as `001.webp` in ZIP and CSV output
 - Splits ZIP output into upload-friendly volumes for AI and chat workflows
 - Supports multiple videos in one session
 - Adjustable sensitivity for fewer or more extracted slides
 - Runs locally in the browser with no installation
+
+## Choosing A Detection Mode
+
+Use **Slide-focused** mode when slides, screen recordings, or product demos occupy most of the frame. If a presenter appears in a fixed picture-in-picture area, draw an exclusion zone around that area so presenter movement does not trigger extra captures.
+
+Use **Presenter + captions** mode for talking-head videos, interviews, and discussions where people occupy a large part of the frame. This mode gives more weight to caption changes and suppresses repeated captures caused by facial expressions, body movement, speaker changes, and brief caption-free transitions.
+
+The original slide-focused detector remains available so presenter-specific heuristics do not change existing slide-heavy workflows.
 
 ## Use Cases
 
@@ -55,6 +67,8 @@ Example workflow:
 
 See the detailed [AI-assisted research workflow guide](docs/ai-workflow.md) for example prompts, privacy notes, and practical limitations.
 
+Release details: [DeckSift v0.3.0 notes](docs/release-v0.3.0.md).
+
 ## Privacy
 
 The tool processes videos locally in the user's browser. It does not intentionally upload video files to a server. Generated images, ZIP volumes, and PDFs remain under user control unless the user chooses to share them with another service.
@@ -63,15 +77,20 @@ See [Privacy and Data Handling](docs/privacy.md) for details about local process
 
 ## Implementation Notes
 
-The current extraction approach is based on visual frame sampling, grayscale signatures, change thresholds, sensitivity controls, and optional exclusion zones. See [Extraction Algorithm And Tradeoffs](docs/algorithm.md) for details.
+The extraction approach combines visual frame sampling, grayscale signatures, change thresholds, sensitivity controls, optional exclusion zones, and an opt-in color-aware caption comparison. See [Extraction Algorithm And Tradeoffs](docs/algorithm.md) for details.
+
+## Validation
+
+The v0.3.0 presenter mode was tuned with a 23-minute presenter/interview test video and manual frame review. The initial detector produced 683 captures. The refined mode produced 594 captures, a reduction of about 13%, while retaining distinct caption changes during the reviewed sections. This is one real-world regression case rather than a universal accuracy claim; additional public benchmark cases are tracked in [issue #5](https://github.com/lazy3128-design/decksift/issues/5).
 
 ## How To Use
 
 1. Open the live demo.
 2. Drag and drop one or more MP4/video files.
-3. Optionally mark areas to ignore, such as a presenter camera overlay.
-4. Start analysis.
-5. Download extracted images as ZIP, generate a PDF, or export timestamp metadata as CSV.
+3. Choose the slide-focused or presenter-and-caption detection mode.
+4. Optionally mark areas to ignore, such as a presenter camera overlay.
+5. Start analysis.
+6. Download extracted images as ZIP, generate a PDF, or export timestamp metadata as CSV.
 
 ## Current Limitations
 
@@ -85,7 +104,7 @@ The current extraction approach is based on visual frame sampling, grayscale sig
 ## Roadmap
 
 - Improve slide change detection for animated decks
-- Add duplicate slide cleanup
+- Expand duplicate-detection benchmarks across more video layouts
 - Add optional OCR-assisted slide naming
 - Add a batch summary workflow for research notes
 - Add test videos and benchmark examples

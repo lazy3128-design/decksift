@@ -9,10 +9,10 @@
 
 ## Detection Improvements
 
-- Tune scene-change thresholds with sample videos
+- Add public regression cases with expected outputs
 - Reduce duplicate captures caused by animations
-- Improve handling of presenter-camera overlays
-- Add optional duplicate slide cleanup
+- Expand presenter-and-caption mode to more subtitle styles and layouts
+- Improve automatic detection of fixed presenter-camera overlays
 
 ## Research Workflow Improvements
 

@@ -10,13 +10,14 @@ Convert a long webinar, lecture, product demo, or research video into smaller ba
 
 1. Open the [DeckSift live demo](https://lazy3128-design.github.io/decksift/).
 2. Select or drag and drop one or more video files.
-3. Optionally mark moving regions to exclude, such as presenter cameras, captions, clocks, or overlays.
-4. Adjust extraction sensitivity when too many or too few slides are detected.
-5. Start analysis and review the generated slide previews.
-6. Save individual frames when needed, or download the full result as WebP/PNG ZIP volumes or a PDF.
-7. Download the timestamp CSV when source-video references are useful.
-8. Upload one ZIP volume at a time to a multimodal AI assistant.
-9. Ask the assistant to summarize, compare, classify, or extract research notes from the slides.
+3. Choose slide-focused mode for decks and screen recordings, or presenter-and-caption mode for talking-head and interview videos.
+4. Optionally mark moving regions to exclude, such as presenter cameras, captions, clocks, or overlays.
+5. Adjust extraction sensitivity when too many or too few slides are detected.
+6. Start analysis and review the generated slide previews. Use the arrow keys to move through enlarged images quickly.
+7. Save individual frames when needed, or download the full result as WebP/PNG ZIP volumes or a PDF.
+8. Download the timestamp CSV when source-video references are useful.
+9. Upload one ZIP volume at a time to a multimodal AI assistant.
+10. Ask the assistant to summarize, compare, classify, or extract research notes from the slides.
 
 ## Why WebP And Split ZIP Volumes
 

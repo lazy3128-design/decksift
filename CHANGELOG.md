@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## Unreleased
+## v0.3.0 - 2026-07-13
 
 - Added previous/next controls, keyboard arrow navigation, and an image counter to the enlarged preview
 - Simplified extracted image filenames to numbered names such as `001.webp`
