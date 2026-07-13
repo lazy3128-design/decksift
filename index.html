@@ -545,7 +545,7 @@ async function processOne(file, mask, num) {
 
     // 字幕なしの候補を1コマだけ保留し、同じ背景に字幕が戻れば中間コマとして除外する。
     if (pendingBlank) {
-      if (!isTransientBlank(pendingBlank.detail, detail)) commitCapture(pendingBlank);
+      if (!isTransientBlank(pendingBlank.detail, detail, pendingBlank.reason)) commitCapture(pendingBlank);
       pendingBlank = null;
     }
 
@@ -554,10 +554,12 @@ async function processOne(file, mask, num) {
     } else if (diff(sig, lastSig, mask) > threshold && (t - lastCapT) >= minGap) {
       if (presenterMode && isPresenterDuplicate(detail, lastAcceptedDetail)) {
         // 同じ字幕・ほぼ同じ画面なら、演者の姿勢だけが変わったコマとして採用しない。
-      } else if (presenterMode && lastAcceptedDetail
-                 && lastAcceptedDetail.captionDensity >= CAPTION_MIN_DENSITY
-                 && detail.captionDensity < CAPTION_MIN_DENSITY) {
+      } else if (presenterMode && isLowCaptionCandidate(detail, lastAcceptedDetail)) {
         pendingBlank = await snapshot(t, detail);
+        pendingBlank.reason = "low-caption";
+      } else if (presenterMode && isSceneCutCandidate(detail, lastAcceptedDetail)) {
+        pendingBlank = await snapshot(t, detail);
+        pendingBlank.reason = "scene-lead";
       } else {
         await capture(t, detail);                        // 画面が変わった
       }
@@ -619,6 +621,7 @@ async function showDownloads(slides, baseName, sourceName, resultEl, fmt) {
     zipA.textContent = vols.length > 1
       ? `${fmt.toUpperCase()}画像 (${vi + 1}/${vols.length})  ${String(from).padStart(3,"0")}〜${String(to).padStart(3,"0")}`
       : `${fmt.toUpperCase()}画像をまとめてダウンロード（${slides.length}枚・001〜）`;
+    zipA.addEventListener("click", () => setStatus(`${zipA.download} の保存を開始しました。`));
     resultEl.appendChild(zipA);
     startIndex = to;
   });
@@ -629,6 +632,7 @@ async function showDownloads(slides, baseName, sourceName, resultEl, fmt) {
   csvA.download = `${baseName}_slides_metadata.csv`;
   csvA.className = "btn dl2";
   csvA.textContent = `時刻CSVをダウンロード（${slides.length}件）`;
+  csvA.addEventListener("click", () => setStatus(`${csvA.download} の保存を開始しました。`));
   resultEl.appendChild(csvA);
 
   // --- PDFは押されたときだけ生成（完了を速くするため）---
@@ -659,7 +663,12 @@ const DETAIL_H = 144;
 const CAPTION_TOP = Math.floor(DETAIL_H * 0.65);
 const DETAIL_CELL_TH = 25;
 const EDGE_TH = 30;
-const CAPTION_MIN_DENSITY = 0.08;
+const CAPTION_MIN_DENSITY = 0.18;
+const CAPTION_MAX_INK_FOR_BLANK = 0.07;
+const INK_TOP = Math.floor(DETAIL_H * 0.68);
+const INK_BOTTOM = Math.floor(DETAIL_H * 0.97);
+const INK_LEFT = Math.floor(DETAIL_W * 0.03);
+const INK_RIGHT = Math.floor(DETAIL_W * 0.97);
 
 // 演者動画向けに、全体の明暗と画面下部の文字輪郭を別々に記録する。
 function detailSignature() {
@@ -671,6 +680,27 @@ function detailSignature() {
   const gray = new Uint8ClampedArray(DETAIL_W * DETAIL_H);
   for (let i = 0; i < gray.length; i++) {
     gray[i] = 0.299 * rgba[i * 4] + 0.587 * rgba[i * 4 + 1] + 0.114 * rgba[i * 4 + 2];
+  }
+
+  const inkWidth = INK_RIGHT - INK_LEFT;
+  const captionInk = new Uint8Array((INK_BOTTOM - INK_TOP) * inkWidth);
+  const captionColors = new Uint8Array(captionInk.length);
+  let inkCount = 0, inkIndex = 0;
+  for (let y = INK_TOP; y < INK_BOTTOM; y++) {
+    for (let x = INK_LEFT; x < INK_RIGHT; x++, inkIndex++) {
+      const i = (y * DETAIL_W + x) * 4;
+      const r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const ink = max - min > 55 && max > 135 ? 1 : 0;
+      captionInk[inkIndex] = ink;
+      if (!ink) continue;
+      inkCount++;
+      if (r > g + 20 && r > b + 20) captionColors[inkIndex] = 1;
+      else if (b > r + 15 && b > g + 15) captionColors[inkIndex] = 2;
+      else if (r > b + 25 && g > b + 15) captionColors[inkIndex] = 3;
+      else if (g > r + 15 && g > b + 15) captionColors[inkIndex] = 4;
+      else captionColors[inkIndex] = 5;
+    }
   }
 
   const captionEdges = new Uint8Array((DETAIL_H - CAPTION_TOP) * DETAIL_W);
@@ -685,7 +715,14 @@ function detailSignature() {
       edgeCount += edge;
     }
   }
-  return { gray, captionEdges, captionDensity: edgeCount / captionEdges.length };
+  return {
+    gray,
+    captionEdges,
+    captionDensity: edgeCount / captionEdges.length,
+    captionInk,
+    captionColors,
+    captionInkDensity: inkCount / captionInk.length,
+  };
 }
 
 function changedRatio(a, b) {
@@ -700,6 +737,16 @@ function edgeDiffRatio(a, b) {
   let changed = 0;
   for (let i = 0; i < a.length; i++) changed += a[i] !== b[i] ? 1 : 0;
   return changed / a.length;
+}
+
+function captionColorDiffRatio(current, previous) {
+  let changed = 0, total = 0;
+  for (let i = 0; i < current.captionInk.length; i++) {
+    if (!current.captionInk[i] && !previous.captionInk[i]) continue;
+    total++;
+    if (current.captionColors[i] !== previous.captionColors[i]) changed++;
+  }
+  return total ? changed / total : 1;
 }
 
 function outerChangedRatio(a, b) {
@@ -719,14 +766,33 @@ function outerChangedRatio(a, b) {
 
 function isPresenterDuplicate(current, previous) {
   if (!previous) return false;
-  return edgeDiffRatio(current.captionEdges, previous.captionEdges) <= 0.07
-    && changedRatio(current.gray, previous.gray) <= 0.12;
+  const edgeDifference = edgeDiffRatio(current.captionEdges, previous.captionEdges);
+  const frameDifference = changedRatio(current.gray, previous.gray);
+  if (edgeDifference <= 0.07 && frameDifference <= 0.12) return true;
+
+  return edgeDifference <= 0.13
+    && frameDifference <= 0.16
+    && edgeDiffRatio(current.captionInk, previous.captionInk) <= 0.07
+    && captionColorDiffRatio(current, previous) <= 0.35;
 }
 
-function isTransientBlank(current, next) {
-  return current.captionDensity < CAPTION_MIN_DENSITY
-    && next.captionDensity >= CAPTION_MIN_DENSITY
-    && outerChangedRatio(current.gray, next.gray) <= 0.04;
+function isLowCaptionCandidate(current, previous) {
+  return previous
+    && previous.captionDensity >= CAPTION_MIN_DENSITY
+    && current.captionDensity < CAPTION_MIN_DENSITY
+    && current.captionInkDensity <= CAPTION_MAX_INK_FOR_BLANK;
+}
+
+function isSceneCutCandidate(current, previous) {
+  return previous && changedRatio(current.gray, previous.gray) >= 0.50;
+}
+
+function isTransientBlank(current, next, reason) {
+  if (outerChangedRatio(current.gray, next.gray) > 0.04) return false;
+  if (reason === "low-caption") return next.captionDensity >= CAPTION_MIN_DENSITY;
+  return edgeDiffRatio(current.captionEdges, next.captionEdges) >= 0.15
+    && next.captionDensity - current.captionDensity >= 0.10
+    && next.captionInkDensity - current.captionInkDensity >= 0.08;
 }
 
 function csvCell(value) {

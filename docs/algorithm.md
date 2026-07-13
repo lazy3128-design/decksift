@@ -39,9 +39,9 @@ Users can draw exclusion zones before analysis. These regions are ignored during
 
 Presenter-led videos can produce many extra captures when body movement changes a large part of the frame. The optional presenter-and-caption mode adds a second, conservative check after the normal change detector finds a candidate frame.
 
-The additional check compares both the full low-resolution frame and the edge pattern in the lower caption region. A candidate is suppressed only when the overall frame remains very similar and the caption pattern is also nearly unchanged. This keeps the original detector available for slide-heavy videos while reducing repeated presenter poses in captioned videos.
+The additional check compares the full low-resolution frame with the edge pattern and dominant text colors in the lower caption region. Color-aware matching helps distinguish changed captions from the same caption over different presenter poses. This keeps the original detector available for slide-heavy videos while reducing repeated presenter poses in captioned videos.
 
-Caption-free candidates are held for one additional sample. If captions immediately return while the outer background remains stable, the held frame is treated as a brief transition and discarded. Persistent caption-free scenes are retained.
+Caption-free candidates and major scene cuts are held for one additional sample. If captions immediately return while the outer background remains stable, the held frame is treated as a brief transition and discarded. Persistent caption-free scenes and scene cuts without a delayed caption are retained.
 
 ## Output Formats
 
