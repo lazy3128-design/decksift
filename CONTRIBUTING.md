@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in improving `slides2pdf`.
+Thanks for your interest in improving `DeckSift`.
 
 This project is a small browser-based tool for extracting slide-like frames from videos. Contributions that improve reliability, usability, privacy, and research workflows are welcome.
 
