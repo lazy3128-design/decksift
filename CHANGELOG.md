@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## v0.2.0 - 2026-07-13
+
 - Renamed the project from `slides2pdf` to `DeckSift`
 - Moved the complete browser app into this repository and removed the iframe dependency
 - Added CSV metadata export with slide numbers, filenames, source video names, and timestamps
