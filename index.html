@@ -499,7 +499,7 @@ async function processOne(file, mask, num) {
       full.toBlob(r, "image/" + fmt, fmt === "webp" ? quality : undefined));
     const bytes = new Uint8Array(await blob.arrayBuffer());
     slides.push({ bytes, w: fw, h: fh, t });
-    const name = `${baseName}_${String(slides.length).padStart(3, "0")}.${fmt}`;
+    const name = `${String(slides.length).padStart(3, "0")}.${fmt}`;
     const img = document.createElement("img");
     img.src = URL.createObjectURL(blob);
     img.title = `${name}（クリックで拡大）`;
@@ -568,7 +568,7 @@ async function showDownloads(slides, baseName, sourceName, resultEl, fmt) {
   vols.forEach((vol, vi) => {
     const from = startIndex + 1, to = startIndex + vol.length;
     const zipA = document.createElement("a");
-    zipA.href = URL.createObjectURL(buildZIP(vol, fmt, baseName, startIndex));
+    zipA.href = URL.createObjectURL(buildZIP(vol, fmt, startIndex));
     zipA.download = vols.length > 1
       ? `${baseName}_slides_${vi + 1}.zip`
       : `${baseName}_slides.zip`;
@@ -582,7 +582,7 @@ async function showDownloads(slides, baseName, sourceName, resultEl, fmt) {
 
   // --- スライド番号・ファイル名・動画内時刻のCSV ---
   const csvA = document.createElement("a");
-  csvA.href = URL.createObjectURL(buildMetadataCSV(slides, baseName, sourceName, fmt));
+  csvA.href = URL.createObjectURL(buildMetadataCSV(slides, sourceName, fmt));
   csvA.download = `${baseName}_slides_metadata.csv`;
   csvA.className = "btn dl2";
   csvA.textContent = `時刻CSVをダウンロード（${slides.length}件）`;
@@ -623,12 +623,12 @@ function formatTimestamp(seconds) {
   return [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
 }
 
-function buildMetadataCSV(slides, baseName, sourceName, fmt) {
+function buildMetadataCSV(slides, sourceName, fmt) {
   const rows = [["slide_number", "filename", "timestamp_seconds", "timestamp_hh_mm_ss", "source_video"]];
   slides.forEach((slide, i) => {
     rows.push([
       i + 1,
-      `${baseName}_${String(i + 1).padStart(3, "0")}.${fmt}`,
+      `${String(i + 1).padStart(3, "0")}.${fmt}`,
       slide.t.toFixed(3),
       formatTimestamp(slide.t),
       sourceName,
@@ -720,7 +720,8 @@ function crc32(buf) {
 }
 
 // 画像を詰めたZIPを手作りする（外部ライブラリ不要）
-function buildZIP(slides, fmt, baseName, startIndex = 0) {
+function buildZIP(slides, fmt, startIndex = 0) {
+  const ZIP_UTF8_FLAG = 0x0800;
   const enc = s => new TextEncoder().encode(s);
   const u16 = n => new Uint8Array([n & 255, (n >> 8) & 255]);
   const u32 = n => new Uint8Array([n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255]);
@@ -730,11 +731,11 @@ function buildZIP(slides, fmt, baseName, startIndex = 0) {
 
   const central = [];
   slides.forEach((s, i) => {
-    const nameB = enc(`${baseName}_${String(startIndex + i + 1).padStart(3, "0")}.${fmt}`);
+    const nameB = enc(`${String(startIndex + i + 1).padStart(3, "0")}.${fmt}`);
     const crc = crc32(s.bytes);
     const offset = len;
     push(u32(0x04034b50));
-    push(u16(20)); push(u16(0)); push(u16(0));        // version, flags, method=store
+    push(u16(20)); push(u16(ZIP_UTF8_FLAG)); push(u16(0)); // version, UTF-8 names, method=store
     push(u16(0)); push(u16(0));                        // time, date
     push(u32(crc)); push(u32(s.bytes.length)); push(u32(s.bytes.length));
     push(u16(nameB.length)); push(u16(0));
@@ -746,7 +747,7 @@ function buildZIP(slides, fmt, baseName, startIndex = 0) {
   const cdStart = len;
   central.forEach(c => {
     push(u32(0x02014b50));
-    push(u16(20)); push(u16(20)); push(u16(0)); push(u16(0)); // made-by, need, flags, method
+    push(u16(20)); push(u16(20)); push(u16(ZIP_UTF8_FLAG)); push(u16(0)); // made-by, need, UTF-8 names, method
     push(u16(0)); push(u16(0));                                // time, date
     push(u32(c.crc)); push(u32(c.size)); push(u32(c.size));
     push(u16(c.nameB.length)); push(u16(0)); push(u16(0));     // name, extra, comment
