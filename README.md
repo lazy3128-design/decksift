@@ -4,7 +4,7 @@ Browser-based video slide extractor for research, lectures, webinars, and AI-ass
 
 Formerly named `slides2pdf`, DeckSift now reflects its broader WebP, PNG, ZIP, PDF, and metadata export workflow.
 
-`DeckSift` detects slide-like scene changes in an MP4 video and exports the captured frames as WebP/PNG images or a single PDF. It runs entirely in the browser, so videos are processed locally and are not uploaded to a server.
+`DeckSift` detects slide-like scene changes in video files and exports WebP/PNG images, split ZIP volumes, a PDF, and timestamp metadata as CSV. It runs entirely in the browser, so videos are processed locally and are not uploaded to a server.
 
 Live demo: https://lazy3128-design.github.io/decksift/
 
