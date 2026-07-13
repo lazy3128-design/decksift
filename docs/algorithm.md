@@ -1,10 +1,10 @@
 # Extraction Algorithm And Tradeoffs
 
-This document explains the current slide extraction approach used by `slides2pdf` and the tradeoffs behind it.
+This document explains the current slide extraction approach used by `DeckSift` and the tradeoffs behind it.
 
 ## Overview
 
-`slides2pdf` is designed for slide-heavy videos such as lectures, webinars, screen recordings, and product demos. The current approach detects visual changes between sampled video frames and captures frames that appear to represent slide transitions.
+`DeckSift` is designed for slide-heavy videos such as lectures, webinars, screen recordings, and product demos. The current approach detects visual changes between sampled video frames and captures frames that appear to represent slide transitions.
 
 The goal is not to understand the semantic content of slides. Instead, the tool provides a fast browser-only workflow for extracting likely slide images that can be reviewed by a human or passed into an AI-assisted research workflow.
 
@@ -37,11 +37,12 @@ Users can draw exclusion zones before analysis. These regions are ignored during
 
 ## Output Formats
 
-`slides2pdf` supports image and PDF outputs:
+`DeckSift` supports image, PDF, ZIP, and metadata outputs:
 
 - WebP is useful for lightweight batches and AI upload workflows.
 - PNG is useful when higher-quality images are preferred.
 - PDF is useful for review, archiving, and sharing extracted slide sequences.
+- CSV records slide numbers, filenames, source video names, and approximate video timestamps.
 
 ## ZIP Volume Splitting
 
@@ -66,7 +67,6 @@ These tradeoffs are acceptable for the first version because the tool is optimiz
 Planned improvements include:
 
 - Duplicate slide cleanup
-- Timestamp metadata export
 - More exact ZIP volume-size validation
 - Optional OCR-assisted slide naming
 - Sample videos and benchmark expected outputs

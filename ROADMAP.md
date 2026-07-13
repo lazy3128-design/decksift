@@ -6,7 +6,6 @@
 - Add sample workflow images
 - Add clearer examples for lecture, webinar, and research usage
 - Add issue templates for bug reports and feature requests
-- Create the first tagged release
 
 ## Detection Improvements
 
@@ -17,8 +16,7 @@
 
 ## Research Workflow Improvements
 
-- Add slide timestamp export
-- Add CSV/JSON metadata export
+- Add optional JSON metadata export
 - Add optional OCR text extraction
 - Add PDF naming based on video title and timestamps
 

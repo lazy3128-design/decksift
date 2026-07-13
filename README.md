@@ -1,21 +1,24 @@
-# slides2pdf
+# DeckSift
 
-Browser-based MP4 slide extractor for research, lectures, webinars, and video review workflows.
+Browser-based video slide extractor for research, lectures, webinars, and AI-assisted review workflows.
 
-`slides2pdf` detects slide-like scene changes in an MP4 video and exports the captured frames as WebP/PNG images or a single PDF. It runs entirely in the browser, so videos are processed locally and are not uploaded to a server.
+Formerly named `slides2pdf`, DeckSift now reflects its broader WebP, PNG, ZIP, PDF, and metadata export workflow.
 
-Live demo: https://lazy3128-design.github.io/slides2pdf/
+`DeckSift` detects slide-like scene changes in video files and exports WebP/PNG images, split ZIP volumes, a PDF, and timestamp metadata as CSV. It runs entirely in the browser, so videos are processed locally and are not uploaded to a server.
+
+Live demo: https://lazy3128-design.github.io/decksift/
 
 ## Why This Exists
 
 When researching webinars, product demos, online courses, talks, or recorded presentations, it is often useful to turn a long video into a set of reviewable slides. Manual screenshots are slow, and full video transcription does not preserve visual layout.
 
-`slides2pdf` helps convert video-based slide content into lightweight image/PDF materials that can be reviewed, annotated, summarized, or archived.
+`DeckSift` helps convert video-based slide content into lightweight image/PDF materials that can be reviewed, annotated, summarized, or archived.
 
 ## Current Capabilities
 
 - Extracts slide-like frames from MP4/video files
 - Exports captured frames as images
+- Exports slide numbers, filenames, and video timestamps as CSV metadata
 - Generates a PDF from extracted slides
 - Exports lightweight WebP images for smaller upload size
 - Supports PNG output when higher-quality images are needed
@@ -40,7 +43,7 @@ When researching webinars, product demos, online courses, talks, or recorded pre
 
 A common workflow is to extract slides from a long video, download the captured frames as ZIP files, and upload the ZIP volumes to an AI assistant for summarization, comparison, or research notes.
 
-To support this workflow, `slides2pdf` keeps ZIP downloads under 24 MB per volume. This makes large slide extraction jobs easier to upload in environments with file-size limits.
+To support this workflow, `DeckSift` keeps ZIP downloads under 24 MB per volume. This makes large slide extraction jobs easier to upload in environments with file-size limits.
 
 Example workflow:
 
@@ -67,7 +70,7 @@ The current extraction approach is based on visual frame sampling, grayscale sig
 2. Drag and drop one or more MP4/video files.
 3. Optionally mark areas to ignore, such as a presenter camera overlay.
 4. Start analysis.
-5. Download extracted images as ZIP or generate a PDF.
+5. Download extracted images as ZIP, generate a PDF, or export timestamp metadata as CSV.
 
 ## Current Limitations
 
@@ -90,7 +93,7 @@ The current extraction approach is based on visual frame sampling, grayscale sig
 
 ## Maintenance
 
-The project tracks release history in [CHANGELOG.md](CHANGELOG.md) and uses GitHub issues for planned improvements, bug reports, and research workflow ideas.
+The complete browser app is maintained in [`index.html`](index.html). The project tracks release history in [CHANGELOG.md](CHANGELOG.md) and uses GitHub issues for planned improvements, bug reports, and research workflow ideas.
 
 ## Maintainer
 
