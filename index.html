@@ -46,7 +46,19 @@
         display: flex; align-items: center; justify-content: center; }
   .lb-inner { display: flex; flex-direction: column; align-items: center; gap: 14px;
               max-width: 94vw; max-height: 94vh; }
+  .lb-stage { position: relative; display: flex; align-items: center; justify-content: center; }
   .lb-inner img { max-width: 94vw; max-height: 80vh; background: #fff; border-radius: 4px; }
+  .lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 1;
+    width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%;
+    background: rgba(0,0,0,.68); color: #fff; font-size: 28px; line-height: 1;
+    cursor: pointer;
+  }
+  .lb-nav:hover:not(:disabled) { background: rgba(0,0,0,.9); }
+  .lb-nav:disabled { opacity: .28; cursor: default; }
+  .lb-prev { left: 12px; }
+  .lb-next { right: 12px; }
+  .lb-count { color: #fff; font-size: 13px; font-variant-numeric: tabular-nums; }
   .lb-bar { display: flex; gap: 12px; }
   .lb-bar .btn { margin: 0; }
   #preview { margin-top: 20px; }
@@ -132,7 +144,12 @@
 
 <div id="lightbox" class="lb hide">
   <div class="lb-inner">
-    <img id="lbImg" alt="拡大表示">
+    <div class="lb-stage">
+      <button id="lbPrev" class="lb-nav lb-prev" type="button" aria-label="前の画像" title="前の画像">&#10094;</button>
+      <img id="lbImg" alt="拡大表示">
+      <button id="lbNext" class="lb-nav lb-next" type="button" aria-label="次の画像" title="次の画像">&#10095;</button>
+    </div>
+    <div id="lbCount" class="lb-count" aria-live="polite"></div>
     <div class="lb-bar">
       <a id="lbDl" class="btn dl" download>この画像を保存</a>
       <button id="lbClose" class="btn" type="button">閉じる</button>
@@ -163,17 +180,41 @@ skipBtn.addEventListener("click", () => {
 
 // 拡大表示（ライトボックス）
 const lightbox = $("lightbox"), lbImg = $("lbImg"), lbDl = $("lbDl"), lbClose = $("lbClose");
-function openLightbox(src, name) {
-  lbImg.src = src;
-  lbDl.href = src;
-  lbDl.download = name;
+const lbPrev = $("lbPrev"), lbNext = $("lbNext"), lbCount = $("lbCount");
+let lbItems = [], lbIndex = 0;
+
+function renderLightbox() {
+  const item = lbItems[lbIndex];
+  if (!item) return;
+  lbImg.src = item.src;
+  lbDl.href = item.src;
+  lbDl.download = item.name;
+  lbCount.textContent = `${lbIndex + 1} / ${lbItems.length}`;
+  lbPrev.disabled = lbIndex <= 0;
+  lbNext.disabled = lbIndex >= lbItems.length - 1;
+}
+function openLightbox(items, index) {
+  lbItems = items;
+  lbIndex = index;
+  renderLightbox();
   lightbox.classList.remove("hide");
 }
+function moveLightbox(delta) {
+  const next = lbIndex + delta;
+  if (next < 0 || next >= lbItems.length) return;
+  lbIndex = next;
+  renderLightbox();
+}
 function closeLightbox() { lightbox.classList.add("hide"); }
+lbPrev.addEventListener("click", () => moveLightbox(-1));
+lbNext.addEventListener("click", () => moveLightbox(1));
 lbClose.addEventListener("click", closeLightbox);
 lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && !lightbox.classList.contains("hide")) closeLightbox();
+  if (lightbox.classList.contains("hide")) return;
+  if (e.key === "Escape") closeLightbox();
+  else if (e.key === "ArrowLeft") { e.preventDefault(); moveLightbox(-1); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); moveLightbox(1); }
 });
 
 $("pick").addEventListener("click", e => { e.stopPropagation(); fileInput.click(); });
@@ -449,6 +490,7 @@ async function processOne(file, mask, num) {
   const fctx = full.getContext("2d");
 
   const slides = [];   // { bytes, w, h }
+  const lightboxItems = [];
   let lastSig = null, lastCapT = -999;
 
   async function capture(t) {
@@ -461,8 +503,10 @@ async function processOne(file, mask, num) {
     const img = document.createElement("img");
     img.src = URL.createObjectURL(blob);
     img.title = `${name}（クリックで拡大）`;
-    img.addEventListener("click", () => openLightbox(img.src, name));
+    const itemIndex = lightboxItems.push({ src: img.src, name }) - 1;
+    img.addEventListener("click", () => openLightbox(lightboxItems, itemIndex));
     gal.appendChild(img);
+    if (!lightbox.classList.contains("hide") && lbItems === lightboxItems) renderLightbox();
     lastCapT = t;
   }
 
