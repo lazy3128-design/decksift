@@ -19,6 +19,8 @@
 - Add optional JSON metadata export
 - Add optional OCR text extraction
 - Add PDF naming based on video title and timestamps
+- Measure processing and review time in repeatable field studies
+- Profile and improve processing speed for long videos
 
 ## Marketing Research Improvements
 

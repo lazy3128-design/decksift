@@ -73,6 +73,8 @@ See the detailed [AI-assisted research workflow guide](docs/ai-workflow.md) for 
 
 For a workflow tailored to web marketing, client evidence, and funnel design, see the [funnel and creative research guide](docs/funnel-research-workflow.md).
 
+An anonymized [target-user field study](docs/field-study-web-marketing.md) documents reported use within a 10-person web marketing team. The team combines extracted frames with transcripts when researching competitor advertising videos and planning original video production. The study also records requests for faster processing and an installable web-app experience.
+
 Release details: [DeckSift v0.3.0 notes](docs/release-v0.3.0.md).
 
 ## Privacy
